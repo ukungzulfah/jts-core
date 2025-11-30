@@ -1,5 +1,5 @@
 {
-  "name": "@jts/core",
+  "name": "jts-core",
   "version": "1.0.0",
   "description": "Janus Token System (JTS) - A two-component authentication architecture for secure, revocable, and confidential API authentication",
   "main": "dist/index.js",
