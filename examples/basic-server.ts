@@ -1,6 +1,6 @@
 /**
  * @engjts/auth - Basic Example Server
- * 
+ *
  * A complete example showing:
  * - Auth Server setup
  * - Resource Server setup
@@ -18,7 +18,7 @@ import {
   jtsRequirePermissions,
   createJTSRoutes,
   JTSProfile,
-} from '../src';
+} from '@engjts/auth';
 
 // ============================================================================
 // CONFIGURATION
@@ -87,7 +87,7 @@ async function main() {
     authServer,
     validateCredentials: async (req) => {
       const { email, password } = req.body;
-      
+
       const user = USERS[email];
       if (!user || user.password !== password) {
         return null;
@@ -115,7 +115,7 @@ async function main() {
   app.delete('/jts/sessions/:aid', authMiddleware, jtsRoutes.revokeSessionHandler);
 
   // 7. Example API routes
-  
+
   // Public route
   app.get('/api/public', (req, res) => {
     res.json({ message: 'This is a public endpoint' });
