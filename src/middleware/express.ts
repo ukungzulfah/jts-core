@@ -25,42 +25,8 @@ import {
 } from '../types';
 import { JTSAuthServer, LoginOptions, RenewOptions } from '../server/auth-server';
 import { JTSResourceServer } from '../server/resource-server';
-import { JTS_DEFAULT_BASE_PATH, JTS_LOGIN_ROUTE, JTS_RENEW_ROUTE, JTS_LOGOUT_ROUTE, JTS_SESSIONS_ROUTE, JTS_SESSION_REVOKE_ROUTE, JTS_WELL_KNOWN_JWKS_PATH, JTS_WELL_KNOWN_CONFIGURATION_PATH } from './constants';
+import { JTS_DEFAULT_BASE_PATH, JTS_LOGIN_ROUTE, JTS_RENEW_ROUTE, JTS_LOGOUT_ROUTE, JTS_SESSIONS_ROUTE, JTS_SESSION_REVOKE_ROUTE, JTS_WELL_KNOWN_JWKS_PATH, JTS_WELL_KNOWN_CONFIGURATION_PATH, CACHE_CONTROL_JWKS, ERROR_INVALID_CREDENTIALS, ERROR_RATE_LIMITED, ERROR_SERVER_ERROR, ERROR_SESSION_NOT_FOUND, HTTP_STATUS_FORBIDDEN, HTTP_STATUS_INTERNAL_SERVER_ERROR, HTTP_STATUS_TOO_MANY_REQUESTS, HTTP_STATUS_UNAUTHORIZED, MESSAGE_FAILED_TO_FETCH_SESSIONS, MESSAGE_FAILED_TO_REVOKE_SESSION, MESSAGE_INVALID_CREDENTIALS, MESSAGE_INVALID_CSRF_TOKEN, MESSAGE_RENEWAL_FAILED, MESSAGE_SESSION_NOT_FOUND, MESSAGE_TOO_MANY_REQUESTS, ERROR_CSRF_INVALID, MESSAGE_LOGIN_FAILED, HTTP_STATUS_NOT_FOUND } from './constants';
 
-
-
-// ============================================================================
-// HTTP STATUS CODE CONSTANTS
-// ============================================================================
-
-const HTTP_STATUS_OK = 200;
-const HTTP_STATUS_BAD_REQUEST = 400;
-const HTTP_STATUS_UNAUTHORIZED = 401;
-const HTTP_STATUS_FORBIDDEN = 403;
-const HTTP_STATUS_NOT_FOUND = 404;
-const HTTP_STATUS_TOO_MANY_REQUESTS = 429;
-const HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
-
-// ============================================================================
-// ERROR RESPONSE CONSTANTS
-// ============================================================================
-
-const ERROR_RATE_LIMITED = 'rate_limited';
-const ERROR_INVALID_CREDENTIALS = 'invalid_credentials';
-const ERROR_SERVER_ERROR = 'server_error';
-const ERROR_CSRF_INVALID = 'csrf_invalid';
-const ERROR_SESSION_NOT_FOUND = 'session_not_found';
-
-const MESSAGE_TOO_MANY_REQUESTS = 'Too many requests';
-const MESSAGE_INVALID_CREDENTIALS = 'Invalid credentials';
-const MESSAGE_LOGIN_FAILED = 'Login failed';
-const MESSAGE_INVALID_CSRF_TOKEN = 'Invalid CSRF token';
-const MESSAGE_RENEWAL_FAILED = 'Renewal failed';
-const MESSAGE_FAILED_TO_FETCH_SESSIONS = 'Failed to fetch sessions';
-const MESSAGE_SESSION_NOT_FOUND = 'Session not found';
-const MESSAGE_FAILED_TO_REVOKE_SESSION = 'Failed to revoke session';
-
-const CACHE_CONTROL_JWKS = 'public, max-age=3600, stale-while-revalidate=60';
 
 /**
  * Extend Express Request type to include JTS authentication context

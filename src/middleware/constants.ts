@@ -59,3 +59,35 @@ export const JTS_SESSIONS_ROUTE = '/sessions';
 export const JTS_SESSION_REVOKE_ROUTE = '/sessions/:aid';
 
 
+
+// ============================================================================
+// HTTP STATUS CODE CONSTANTS
+// ============================================================================
+
+export const HTTP_STATUS_OK = 200;
+export const HTTP_STATUS_BAD_REQUEST = 400;
+export const HTTP_STATUS_UNAUTHORIZED = 401;
+export const HTTP_STATUS_FORBIDDEN = 403;
+export const HTTP_STATUS_NOT_FOUND = 404;
+export const HTTP_STATUS_TOO_MANY_REQUESTS = 429;
+export const HTTP_STATUS_INTERNAL_SERVER_ERROR = 500;
+
+// ============================================================================
+// ERROR RESPONSE CONSTANTS
+// ============================================================================
+
+export const ERROR_RATE_LIMITED = 'rate_limited';
+export const ERROR_INVALID_CREDENTIALS = 'invalid_credentials';
+export const ERROR_SERVER_ERROR = 'server_error';
+export const ERROR_CSRF_INVALID = 'csrf_invalid';
+export const ERROR_SESSION_NOT_FOUND = 'session_not_found';
+
+export const MESSAGE_TOO_MANY_REQUESTS = 'Too many requests';
+export const MESSAGE_INVALID_CREDENTIALS = 'Invalid credentials';
+export const MESSAGE_LOGIN_FAILED = 'Login failed';
+export const MESSAGE_INVALID_CSRF_TOKEN = 'Invalid CSRF token';
+export const MESSAGE_RENEWAL_FAILED = 'Renewal failed';
+export const MESSAGE_FAILED_TO_FETCH_SESSIONS = 'Failed to fetch sessions';
+export const MESSAGE_SESSION_NOT_FOUND = 'Session not found';
+export const MESSAGE_FAILED_TO_REVOKE_SESSION = 'Failed to revoke session';
+export const CACHE_CONTROL_JWKS = 'public, max-age=3600, stale-while-revalidate=60';
