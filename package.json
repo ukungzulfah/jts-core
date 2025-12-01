@@ -29,6 +29,9 @@
     "LICENSE",
     "CHANGELOG.md"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "rm -rf dist && rollup -c && chmod +x dist/cli/index.cjs dist/cli/index.mjs",
