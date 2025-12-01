@@ -104,6 +104,45 @@ export default [
       }),
     ],
   },
+  // Adapter entry point - ESM (for external database adapters)
+  {
+    input: 'src/stores/adapter.ts',
+    output: {
+      file: 'dist/stores/adapter.mjs',
+      format: 'esm',
+      sourcemap: true,
+    },
+    external,
+    plugins: [
+      ...sharedPlugins,
+      typescript({
+        tsconfig: './tsconfig.json',
+        declaration: false,
+        declarationMap: false,
+        outDir: 'dist',
+      }),
+    ],
+  },
+  // Adapter entry point - CJS
+  {
+    input: 'src/stores/adapter.ts',
+    output: {
+      file: 'dist/stores/adapter.cjs',
+      format: 'cjs',
+      sourcemap: true,
+      exports: 'named',
+    },
+    external,
+    plugins: [
+      ...sharedPlugins,
+      typescript({
+        tsconfig: './tsconfig.json',
+        declaration: false,
+        declarationMap: false,
+        outDir: 'dist',
+      }),
+    ],
+  },
   // Type definitions for main library
   {
     input: 'src/index.ts',
@@ -119,6 +158,16 @@ export default [
     input: 'src/cli/index.ts',
     output: {
       file: 'dist/cli/index.d.ts',
+      format: 'esm',
+    },
+    external,
+    plugins: [dts()],
+  },
+  // Type definitions for Adapter
+  {
+    input: 'src/stores/adapter.ts',
+    output: {
+      file: 'dist/stores/adapter.d.ts',
       format: 'esm',
     },
     external,

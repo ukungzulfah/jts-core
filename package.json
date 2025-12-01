@@ -21,6 +21,12 @@
       "import": "./dist/cli/index.mjs",
       "require": "./dist/cli/index.cjs",
       "default": "./dist/cli/index.mjs"
+    },
+    "./adapter": {
+      "types": "./dist/stores/adapter.d.ts",
+      "import": "./dist/stores/adapter.mjs",
+      "require": "./dist/stores/adapter.cjs",
+      "default": "./dist/stores/adapter.mjs"
     }
   },
   "files": [
@@ -93,16 +99,21 @@
   "dependencies": {
     "chalk": "^4.1.2",
     "commander": "^12.1.0",
-    "cookie-parser": "^1.4.7",
-    "express": ">=4.0.0",
-    "ioredis": "^5.3.2",
-    "pg": "^8.11.3"
+    "cookie-parser": "^1.4.7"
   },
   "peerDependencies": {
-    "express": ">=4.0.0"
+    "express": ">=4.0.0",
+    "ioredis": ">=5.0.0",
+    "pg": ">=8.0.0"
   },
   "peerDependenciesMeta": {
     "express": {
+      "optional": true
+    },
+    "ioredis": {
+      "optional": true
+    },
+    "pg": {
       "optional": true
     }
   },
