@@ -1,5 +1,5 @@
 /**
- * @jts/core - Janus Token System Types
+ * @engjts/auth - Janus Token System Types
  * Core type definitions for JTS implementation
  */
 

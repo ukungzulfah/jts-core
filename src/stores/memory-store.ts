@@ -1,5 +1,5 @@
 /**
- * @jts/core - In-Memory Session Store
+ * @engjts/auth - In-Memory Session Store
  * For development and testing purposes
  */
 

@@ -1,5 +1,5 @@
 /**
- * @jts/core - Express Middleware Tests
+ * @engjts/auth - Express Middleware Tests
  */
 
 import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';

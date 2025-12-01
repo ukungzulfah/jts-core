@@ -1,5 +1,5 @@
 /**
- * @jts/core - BearerPass Token Tests
+ * @engjts/auth - BearerPass Token Tests
  */
 
 import { describe, it, expect, beforeAll, vi, afterEach } from 'vitest';

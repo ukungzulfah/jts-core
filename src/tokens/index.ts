@@ -1,5 +1,5 @@
 /**
- * @jts/core - Token Module Exports
+ * @engjts/auth - Token Module Exports
  */
 
 export * from './bearer-pass';

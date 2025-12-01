@@ -1,5 +1,5 @@
 {
-  "name": "jts-core",
+  "name": "@engjts/auth",
   "version": "1.0.0",
   "description": "Janus Token System (JTS) - A two-component authentication architecture for secure, revocable, and confidential API authentication",
   "main": "dist/index.js",
@@ -62,9 +62,9 @@
     "type": "git",
     "url": "git+https://github.com/ukungzulfah/jts-core.git"
   },
-  "homepage": "https://github.com/ukungzulfah/jts-core#readme",
+  "homepage": "https://github.com/ukungzulfah/jts-core.git#readme",
   "bugs": {
-    "url": "https://github.com/ukungzulfah/jts-core/issues"
+    "url": "https://github.com/ukungzulfah/jts-core.git/issues"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.10",

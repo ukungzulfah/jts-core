@@ -1,5 +1,5 @@
 /**
- * @jts/core - Client SDK
+ * @engjts/auth - Client SDK
  * Client-side token management with auto-renewal
  */
 

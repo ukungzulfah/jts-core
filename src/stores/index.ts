@@ -1,5 +1,5 @@
 /**
- * @jts/core - Session Stores Module Exports
+ * @engjts/auth - Session Stores Module Exports
  */
 
 export * from './session-store';

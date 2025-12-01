@@ -1,5 +1,5 @@
 /**
- * @jts/core - Middleware Module Exports
+ * @engjts/auth - Middleware Module Exports
  */
 
 export * from './express';

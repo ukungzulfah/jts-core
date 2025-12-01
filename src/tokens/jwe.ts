@@ -1,5 +1,5 @@
 /**
- * @jts/core - JWE Handler for JTS-C Profile
+ * @engjts/auth - JWE Handler for JTS-C Profile
  * Create and decrypt encrypted BearerPass tokens
  */
 

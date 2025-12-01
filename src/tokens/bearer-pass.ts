@@ -1,5 +1,5 @@
 /**
- * @jts/core - BearerPass Token Handler
+ * @engjts/auth - BearerPass Token Handler
  * Create and verify BearerPass tokens (JWS)
  */
 
