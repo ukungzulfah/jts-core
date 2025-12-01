@@ -1,5 +1,5 @@
 /**
- * @jts/core - Redis Session Store
+ * jts-core - Redis Session Store
  * Production-ready Redis implementation
  */
 

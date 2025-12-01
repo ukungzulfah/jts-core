@@ -1,5 +1,5 @@
 /**
- * @jts/core - PostgreSQL Session Store
+ * jts-core - PostgreSQL Session Store
  * Production-ready PostgreSQL implementation
  */
 

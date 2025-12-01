@@ -1,5 +1,5 @@
 /**
- * @jts/core - Session Store Tests
+ * jts-core - Session Store Tests
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';

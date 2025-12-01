@@ -1,5 +1,5 @@
 /**
- * @jts/core - Resource Server SDK
+ * jts-core - Resource Server SDK
  * Verify and validate BearerPass tokens
  */
 

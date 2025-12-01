@@ -1,5 +1,5 @@
 /**
- * @jts/core - Server Module Exports
+ * jts-core - Server Module Exports
  */
 
 export * from './auth-server';

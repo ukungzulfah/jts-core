@@ -1,5 +1,5 @@
 /**
- * @jts/core - Basic Example Server
+ * jts-core - Basic Example Server
  * 
  * A complete example showing:
  * - Auth Server setup

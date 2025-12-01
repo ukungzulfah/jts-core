@@ -1,5 +1,5 @@
 /**
- * @jts/core - Express Middleware
+ * jts-core - Express Middleware
  * Authentication and authorization middleware for Express.js
  */
 

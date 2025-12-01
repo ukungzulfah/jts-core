@@ -1,5 +1,5 @@
 /**
- * @jts/core - Session Store Interface
+ * jts-core - Session Store Interface
  * Abstract interface for session storage backends
  */
 

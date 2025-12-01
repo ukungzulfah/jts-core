@@ -1,5 +1,5 @@
 /**
- * @jts/core - Janus Token System SDK
+ * jts-core - Janus Token System SDK
  * 
  * A two-component authentication architecture for secure, 
  * revocable, and confidential API authentication.

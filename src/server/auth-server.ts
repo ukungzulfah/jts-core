@@ -1,5 +1,5 @@
 /**
- * @jts/core - Auth Server SDK
+ * jts-core - Auth Server SDK
  * Complete authentication server implementation
  */
 

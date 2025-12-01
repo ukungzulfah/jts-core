@@ -1,5 +1,5 @@
 /**
- * @jts/core - Crypto Utilities
+ * jts-core - Crypto Utilities
  * Native Node.js crypto implementation for JTS
  */
 

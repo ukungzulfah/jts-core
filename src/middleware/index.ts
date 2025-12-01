@@ -1,5 +1,5 @@
 /**
- * @jts/core - Middleware Module Exports
+ * jts-core - Middleware Module Exports
  */
 
 export * from './express';

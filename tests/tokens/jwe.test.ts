@@ -1,5 +1,5 @@
 /**
- * @jts/core - JWE (JTS-C Profile) Tests
+ * jts-core - JWE (JTS-C Profile) Tests
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';

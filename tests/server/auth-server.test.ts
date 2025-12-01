@@ -1,5 +1,5 @@
 /**
- * @jts/core - Auth Server Tests
+ * jts-core - Auth Server Tests
  */
 
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';

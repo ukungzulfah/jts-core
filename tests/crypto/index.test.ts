@@ -1,5 +1,5 @@
 /**
- * @jts/core - Crypto Utilities Tests
+ * jts-core - Crypto Utilities Tests
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';

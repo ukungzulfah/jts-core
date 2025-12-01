@@ -1,5 +1,5 @@
 /**
- * @jts/core - Resource Server Tests
+ * jts-core - Resource Server Tests
  */
 
 import { describe, it, expect, beforeAll, beforeEach, afterEach, vi } from 'vitest';
