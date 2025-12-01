@@ -7,7 +7,7 @@ import { JTSResourceServer } from '../../src/server/resource-server';
 import { createBearerPass, decodeBearerPass } from '../../src/tokens/bearer-pass';
 import { createEncryptedBearerPass } from '../../src/tokens/jwe';
 import { generateKeyPair } from '../../src/crypto';
-import { JTSKeyPair } from '../../src/types';
+import { JTSKeyPair, JTS_PROFILES } from '../../src/types';
 
 describe('JTSResourceServer', () => {
   let signingKey: JTSKeyPair;
@@ -40,7 +40,7 @@ describe('JTSResourceServer', () => {
 
     it('should create server with all options', () => {
       const server = new JTSResourceServer({
-        acceptedProfiles: ['JTS-S/v1'],
+        acceptedProfiles: [JTS_PROFILES.STANDARD],
         publicKeys: [signingKey],
         audience: 'https://api.example.com',
         gracePeriodTolerance: 60,
@@ -479,7 +479,7 @@ describe('JTSResourceServer', () => {
     it('should accept tokens with accepted profiles', async () => {
       const server = new JTSResourceServer({
         publicKeys: [signingKey],
-        acceptedProfiles: ['JTS-S/v1'],
+        acceptedProfiles: [JTS_PROFILES.STANDARD],
       });
 
       const token = createBearerPass({
@@ -487,7 +487,7 @@ describe('JTSResourceServer', () => {
         aid: 'aid_test',
         kid: signingKey.kid,
         privateKey: signingKey.privateKey!,
-        profile: 'JTS-S/v1',
+        profile: JTS_PROFILES.STANDARD,
       });
 
       const result = await server.verify(token);
@@ -497,7 +497,7 @@ describe('JTSResourceServer', () => {
     it('should reject tokens with non-accepted profiles', async () => {
       const server = new JTSResourceServer({
         publicKeys: [signingKey],
-        acceptedProfiles: ['JTS-S/v1'],
+        acceptedProfiles: [JTS_PROFILES.STANDARD],
       });
 
       const token = createBearerPass({
@@ -505,7 +505,7 @@ describe('JTSResourceServer', () => {
         aid: 'aid_test',
         kid: signingKey.kid,
         privateKey: signingKey.privateKey!,
-        profile: 'JTS-L/v1',
+        profile: JTS_PROFILES.LITE,
       });
 
       const result = await server.verify(token);

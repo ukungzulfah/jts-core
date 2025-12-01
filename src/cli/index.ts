@@ -1,14 +1,17 @@
 #!/usr/bin/env node
 
 /**
- * @engjts/auth CLI - Janus Token System Command Line Interface
- * 
- * Commands:
- * - jts keygen: Generate key pairs
- * - jts inspect: Decode and display token contents
- * - jts verify: Verify token signature
- * - jts jwks: Convert keys to JWKS format
- * - jts init: Initialize JTS configuration
+ * @engjts/auth CLI – Janus Token System Command Line Interface.
+ *
+ * This executable provides a collection of utilities for managing keys,
+ * inspecting and verifying tokens, and scaffolding a new JTS configuration.
+ *
+ * High-level commands:
+ * - `jts keygen`  : Generate asymmetric key pairs in PEM or JWK format.
+ * - `jts inspect` : Decode and display the header and payload of a JWS/JWE token.
+ * - `jts verify`  : Verify the signature and expiration status of a JWS token.
+ * - `jts jwks`    : Convert one or more keys into a JWKS (JSON Web Key Set).
+ * - `jts init`    : Bootstrap a ready-to-use JTS configuration directory.
  */
 
 import { Command } from 'commander';
@@ -31,14 +34,18 @@ import {
   JTS_SPEC_VERSION,
 } from '../index';
 
-import type { JTSAlgorithm, JTSKeyPair, JTSHeader, JTSPayload, JWKS, JWKSKey } from '../types';
+import type { JTSAlgorithm, JTSKeyPair, JTSHeader, JTSPayload, JWKS, JWKSKey, JTSProfile } from '../types';
+import { JTS_PROFILES } from '../types';
 
 // ============================================================================
 // HELPER FUNCTIONS
 // ============================================================================
 
 /**
- * Print styled output
+ * Utility helpers for consistently formatted console output.
+ *
+ * These functions are thin wrappers around `console.log` / `console.error`
+ * that apply color and style using `chalk` to make CLI output easier to read.
  */
 const print = {
   success: (msg: string) => console.log(chalk.green('✓'), msg),
@@ -51,7 +58,10 @@ const print = {
 };
 
 /**
- * Format timestamp to readable date
+ * Format a UNIX timestamp (in seconds) into an ISO-8601 date-time string.
+ *
+ * @param timestamp - UNIX timestamp in seconds.
+ * @returns ISO-8601 formatted string representation of the timestamp.
  */
 function formatTimestamp(timestamp: number): string {
   const date = new Date(timestamp * 1000);
@@ -59,14 +69,24 @@ function formatTimestamp(timestamp: number): string {
 }
 
 /**
- * Check if token is expired
+ * Determine whether a UNIX timestamp (in seconds) is already in the past.
+ *
+ * @param exp - Expiration timestamp (seconds since epoch).
+ * @returns `true` if the timestamp is strictly before the current time; otherwise `false`.
  */
 function isExpired(exp: number): boolean {
   return exp < Math.floor(Date.now() / 1000);
 }
 
 /**
- * Get time until expiration
+ * Produce a human-readable description of the time difference between the
+ * current moment and a future or past UNIX timestamp (in seconds).
+ *
+ * The output is optimized for CLI usage, e.g. `30s`, `4m 20s`, `2h 5m`,
+ * or for past timestamps `10s ago`, `3h ago`, `2d ago`, etc.
+ *
+ * @param exp - Target timestamp (seconds since epoch).
+ * @returns A short human-readable relative time string.
  */
 function getTimeRemaining(exp: number): string {
   const now = Math.floor(Date.now() / 1000);
@@ -87,7 +107,13 @@ function getTimeRemaining(exp: number): string {
 }
 
 /**
- * Decode a JTS token (JWS format)
+ * Decode a JTS token in compact JWS format (`<header>.<payload>.<signature>`).
+ *
+ * This function performs **parsing only**. It does not verify signatures,
+ * validate claims, or enforce any security policy.
+ *
+ * @param token - Token string in compact JWS serialization.
+ * @returns Parsed header, payload, and signature if valid; otherwise `null`.
  */
 function decodeToken(token: string): { header: JTSHeader; payload: JTSPayload; signature: string } | null {
   try {
@@ -107,7 +133,13 @@ function decodeToken(token: string): { header: JTSHeader; payload: JTSPayload; s
 }
 
 /**
- * Read file or stdin
+ * Read text content either from a file path or from STDIN.
+ *
+ * - When `filePath` is provided and not equal to `"-"`, the file is read synchronously.
+ * - When `filePath` is omitted or set to `"-"`, the function reads from STDIN until EOF.
+ *
+ * @param filePath - Optional file path or `"-"` to signal STDIN.
+ * @returns Promise resolving to the textual content.
  */
 async function readInput(filePath?: string): Promise<string> {
   if (filePath && filePath !== '-') {
@@ -133,7 +165,15 @@ async function readInput(filePath?: string): Promise<string> {
 }
 
 /**
- * Write output to file or stdout
+ * Write textual content either to a file or to STDOUT.
+ *
+ * - When `filePath` is provided and not equal to `"-"`, the file is written synchronously.
+ * - Otherwise, the content is printed directly to STDOUT.
+ *
+ * The function also emits a short success message when writing to a file.
+ *
+ * @param content - Textual content to write.
+ * @param filePath - Optional destination file path or `"-"` to force STDOUT.
  */
 function writeOutput(content: string, filePath?: string): void {
   if (filePath && filePath !== '-') {
@@ -149,7 +189,19 @@ function writeOutput(content: string, filePath?: string): void {
 // ============================================================================
 
 /**
- * keygen command - Generate key pairs
+ * Implementation for the `keygen` command.
+ *
+ * Generates an asymmetric key pair suitable for JTS signing and outputs it
+ * either in PEM or JWK format. When writing to files, the private and public
+ * keys are stored separately to align with best security practices.
+ *
+ * @param options - CLI options for key generation.
+ * @param options.algorithm - JWS algorithm (e.g. `RS256`, `ES256`, `PS256`).
+ * @param options.kid - Optional Key ID; if omitted a timestamp-based ID is generated.
+ * @param options.bits - RSA modulus length in bits (only used for RSA/PS algorithms).
+ * @param options.output - Optional destination path for the private key / private JWK.
+ * @param options.publicOut - Optional explicit destination path for the public key / JWK.
+ * @param options.format - Output format: `"pem"` or `"jwk"`.
  */
 async function keygenCommand(options: {
   algorithm: JTSAlgorithm;
@@ -227,7 +279,17 @@ async function keygenCommand(options: {
 }
 
 /**
- * inspect command - Decode and display token contents
+ * Implementation for the `inspect` command.
+ *
+ * This command decodes a JWS or JWE token and displays its structure in a
+ * human-friendly format. For JWS tokens, both header and payload are shown.
+ * For JWE tokens, only the header is available because the payload is encrypted.
+ *
+ * When the `--json` flag is used, a machine-readable JSON summary is printed.
+ *
+ * @param token - Token string or path to a file containing the token.
+ * @param options - CLI flags.
+ * @param options.json - If `true`, output is printed as pretty-printed JSON.
  */
 async function inspectCommand(token: string, options: { json?: boolean }) {
   // Try to read from file if token looks like a path
@@ -352,7 +414,19 @@ async function inspectCommand(token: string, options: { json?: boolean }) {
 }
 
 /**
- * verify command - Verify token signature
+ * Implementation for the `verify` command.
+ *
+ * This command:
+ * 1. Parses a JWS token.
+ * 2. Resolves a public verification key from either a PEM/JWK file or a JWKS
+ *    endpoint/file.
+ * 3. Verifies the token's signature and reports whether it is valid.
+ * 4. Performs a basic expiration check on the `exp` claim.
+ *
+ * @param token - Token string or path to a file containing the token.
+ * @param options - CLI flags.
+ * @param options.key - Path to a PEM or JWK file, or `"-"` to read from STDIN.
+ * @param options.jwks - URL or file path to a JWKS document used to resolve the key.
  */
 async function verifyCommand(token: string, options: { key?: string; jwks?: string }) {
   // Read token
@@ -468,7 +542,16 @@ async function verifyCommand(token: string, options: { key?: string; jwks?: stri
 }
 
 /**
- * jwks command - Convert keys to JWKS format
+ * Implementation for the `jwks` command.
+ *
+ * Aggregates a collection of keys (PEM, single JWK, or JWKS) and converts
+ * them into a single JWKS document suitable for publication on an authorization
+ * server or identity provider.
+ *
+ * @param keyFiles - List of file paths to PEM/JWK/JWKS inputs.
+ * @param options - CLI flags.
+ * @param options.output - Optional destination path for the generated JWKS JSON.
+ * @param options.kid - Optional Key ID to assign when converting PEM keys.
  */
 async function jwksCommand(keyFiles: string[], options: { output?: string; kid?: string }) {
   print.header('Converting to JWKS');
@@ -541,10 +624,23 @@ async function jwksCommand(keyFiles: string[], options: { output?: string; kid?:
 }
 
 /**
- * init command - Initialize JTS configuration
+ * Implementation for the `init` command.
+ *
+ * Bootstraps a new JTS configuration directory by:
+ * - Generating signing (and optionally encryption) keys.
+ * - Creating an initial JWKS containing the public keys.
+ * - Writing a `jts.config.json` configuration file.
+ * - Providing a TypeScript `example.ts` that demonstrates typical usage.
+ * - Creating a `.gitignore` entry to help avoid committing private keys.
+ *
+ * @param options - CLI flags.
+ * @param options.profile - JTS profile (`JTS-L`, `JTS-S`, or `JTS-C`).
+ * @param options.algorithm - Signing algorithm to use for the main key.
+ * @param options.output - Target directory where configuration will be created.
+ * @param options.force - If `true`, existing directories may be overwritten.
  */
 async function initCommand(options: { 
-  profile: 'JTS-L' | 'JTS-S' | 'JTS-C';
+  profile: JTSProfile;
   algorithm: JTSAlgorithm;
   output: string;
   force?: boolean;
@@ -589,7 +685,7 @@ async function initCommand(options: {
     
     // Generate encryption key for JTS-C
     let encryptionKey: JTSKeyPair | undefined;
-    if (profile === 'JTS-C') {
+    if (profile === JTS_PROFILES.CONFIDENTIAL) {
       print.info('Generating encryption key...');
       encryptionKey = await generateRSAKeyPair(`${profile.toLowerCase()}-encryption-${Date.now()}`, 'RS256', 2048);
       
@@ -727,7 +823,7 @@ async function verifyToken(bearerPass: string) {
     console.log(`  ${chalk.cyan(path.join(output, 'signing-key.pub.pem'))} - Public signing key`);
     console.log(`  ${chalk.cyan(path.join(output, 'jwks.json'))} - JWKS public keys`);
     console.log(`  ${chalk.cyan(path.join(output, 'example.ts'))} - Example usage`);
-    if (profile === 'JTS-C') {
+    if (profile === JTS_PROFILES.CONFIDENTIAL) {
       console.log(`  ${chalk.cyan(path.join(output, 'encryption-key.pem'))} - Private encryption key`);
       console.log(`  ${chalk.cyan(path.join(output, 'encryption-key.pub.pem'))} - Public encryption key`);
     }
@@ -767,10 +863,10 @@ ${chalk.bold('Examples:')}
   $ jts jwks signing-key.pub.pem -o jwks.json
 
   ${chalk.dim('# Initialize a new JTS project')}
-  $ jts init --profile JTS-S --algorithm ES256 --output ./config
+  $ jts init --profile ${JTS_PROFILES.STANDARD} --algorithm ES256 --output ./config
 `);
 
-// keygen command
+// Register: `keygen` – generate key pairs for signing and verification.
 program
   .command('keygen')
   .description('Generate a new key pair for JTS signing')
@@ -782,14 +878,14 @@ program
   .option('-f, --format <format>', 'Output format: pem or jwk', 'pem')
   .action(keygenCommand);
 
-// inspect command
+// Register: `inspect` – decode and display token contents.
 program
   .command('inspect <token>')
   .description('Decode and display the contents of a JTS token')
   .option('-j, --json', 'Output as JSON')
   .action(inspectCommand);
 
-// verify command
+// Register: `verify` – validate token signatures and expiration.
 program
   .command('verify <token>')
   .description('Verify the signature of a JTS token')
@@ -797,7 +893,7 @@ program
   .option('--jwks <url-or-file>', 'JWKS URL or file')
   .action(verifyCommand);
 
-// jwks command
+// Register: `jwks` – produce a JWKS (JSON Web Key Set) from one or more keys.
 program
   .command('jwks <keyfiles...>')
   .description('Convert key files to JWKS format')
@@ -805,20 +901,20 @@ program
   .option('-k, --kid <kid>', 'Key ID (for PEM files)')
   .action(jwksCommand);
 
-// init command
+// Register: `init` – scaffold a new JTS configuration directory.
 program
   .command('init')
   .description('Initialize JTS configuration for a new project')
-  .option('--profile <profile>', 'JTS profile: JTS-L, JTS-S, or JTS-C', 'JTS-S')
+  .option('--profile <profile>', `JTS profile: ${JTS_PROFILES.LITE}, ${JTS_PROFILES.STANDARD}, or ${JTS_PROFILES.CONFIDENTIAL}`, JTS_PROFILES.STANDARD)
   .option('-a, --algorithm <alg>', 'Signing algorithm', 'ES256')
   .option('-o, --output <dir>', 'Output directory', './jts-config')
   .option('-f, --force', 'Overwrite existing directory')
   .action(initCommand);
 
-// Parse arguments
+// Parse and dispatch CLI arguments based on the registered sub-commands.
 program.parse();
 
-// Show help if no command provided
+// Display the help text when no command is provided in the invocation.
 if (!process.argv.slice(2).length) {
   program.outputHelp();
 }

@@ -8,6 +8,7 @@ import { InMemorySessionStore } from '../../src/stores/memory-store';
 import { generateECKeyPair } from '../../src/crypto';
 import { decodeBearerPass } from '../../src/tokens/bearer-pass';
 import type { JTSKeyPair } from '../../src/types';
+import { JTS_PROFILES } from '../../src/types';
 
 describe('JTSAuthServer', () => {
   let signingKey: JTSKeyPair;
@@ -23,7 +24,7 @@ describe('JTSAuthServer', () => {
   beforeEach(() => {
     sessionStore = new InMemorySessionStore();
     authServer = new JTSAuthServer({
-      profile: 'JTS-S/v1',
+      profile: JTS_PROFILES.STANDARD,
       signingKey,
       bearerPassLifetime: 300,
       stateProofLifetime: 3600,
@@ -37,17 +38,17 @@ describe('JTSAuthServer', () => {
 
   describe('constructor', () => {
     it('should create server with config', () => {
-      expect(authServer.getProfile()).toBe('JTS-S/v1');
+      expect(authServer.getProfile()).toBe(JTS_PROFILES.STANDARD);
     });
 
     it('should support JTS-L profile', () => {
-      const server = new JTSAuthServer({ profile: 'JTS-L/v1', signingKey });
-      expect(server.getProfile()).toBe('JTS-L/v1');
+      const server = new JTSAuthServer({ profile: JTS_PROFILES.LITE, signingKey });
+      expect(server.getProfile()).toBe(JTS_PROFILES.LITE);
     });
 
     it('should support JTS-C profile', () => {
-      const server = new JTSAuthServer({ profile: 'JTS-C/v1', signingKey, encryptionKey });
-      expect(server.getProfile()).toBe('JTS-C/v1');
+      const server = new JTSAuthServer({ profile: JTS_PROFILES.CONFIDENTIAL, signingKey, encryptionKey });
+      expect(server.getProfile()).toBe(JTS_PROFILES.CONFIDENTIAL);
     });
   });
 
@@ -117,7 +118,7 @@ describe('JTSAuthServer', () => {
       const { generateRSAKeyPair } = await import('../../src/crypto');
       const rsaEncKey = await generateRSAKeyPair('rsa-enc', 'RS256');
       
-      const server = new JTSAuthServer({ profile: 'JTS-C/v1', signingKey, encryptionKey: rsaEncKey });
+      const server = new JTSAuthServer({ profile: JTS_PROFILES.CONFIDENTIAL, signingKey, encryptionKey: rsaEncKey });
       const result = await server.login({ prn: 'user123' });
       expect(result.bearerPass.split('.').length).toBe(5);
     });

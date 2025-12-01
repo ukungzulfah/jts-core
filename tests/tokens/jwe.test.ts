@@ -11,7 +11,7 @@ import {
 } from '../../src/tokens/jwe';
 import { createBearerPass, decodeBearerPass } from '../../src/tokens/bearer-pass';
 import { generateKeyPair } from '../../src/crypto';
-import { JTSError, JTSKeyPair } from '../../src/types';
+import { JTSError, JTSKeyPair, JTS_PROFILES } from '../../src/types';
 
 describe('JWE (JTS-C Profile)', () => {
   let signingKey: JTSKeyPair;
@@ -59,7 +59,7 @@ describe('JWE (JTS-C Profile)', () => {
         Buffer.from(headerPart.replace(/-/g, '+').replace(/_/g, '/'), 'base64').toString()
       );
 
-      expect(header.typ).toBe('JTS-C/v1');
+      expect(header.typ).toBe(JTS_PROFILES.CONFIDENTIAL);
       expect(header.alg).toBe('RSA-OAEP-256');
       expect(header.enc).toBe('A256GCM');
       expect(header.kid).toBe(encryptionKey.kid);
@@ -155,7 +155,7 @@ describe('JWE (JTS-C Profile)', () => {
 
       expect(jws).toBeDefined();
       expect(jws.split('.')).toHaveLength(3); // JWS has 3 parts
-      expect(header.typ).toBe('JTS-C/v1');
+      expect(header.typ).toBe(JTS_PROFILES.CONFIDENTIAL);
     });
 
     it('should throw on invalid JWE format', () => {
@@ -393,7 +393,7 @@ describe('JWE (JTS-C Profile)', () => {
         aid: 'aid_test',
         kid: signingKey.kid,
         privateKey: signingKey.privateKey!,
-        profile: 'JTS-S/v1',
+        profile: JTS_PROFILES.STANDARD,
       });
 
       expect(isEncryptedToken(token)).toBe(false);

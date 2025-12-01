@@ -15,7 +15,7 @@ import {
   hasAnyPermission,
 } from '../../src/tokens/bearer-pass';
 import { generateKeyPair } from '../../src/crypto';
-import { JTSError, JTSKeyPair } from '../../src/types';
+import { JTSError, JTSKeyPair, JTS_PROFILES } from '../../src/types';
 
 describe('BearerPass Creation', () => {
   let keyPair: JTSKeyPair;
@@ -33,7 +33,7 @@ describe('BearerPass Creation', () => {
         aid: 'aid_test123',
         kid: keyPair.kid,
         privateKey: keyPair.privateKey!,
-        profile: 'JTS-S/v1',
+        profile: JTS_PROFILES.STANDARD,
       });
 
       expect(token).toBeDefined();
@@ -46,11 +46,11 @@ describe('BearerPass Creation', () => {
         aid: 'aid_test123',
         kid: keyPair.kid,
         privateKey: keyPair.privateKey!,
-        profile: 'JTS-L/v1',
+        profile: JTS_PROFILES.LITE,
       });
 
       const decoded = decodeBearerPass(token);
-      expect(decoded.header.typ).toBe('JTS-L/v1');
+      expect(decoded.header.typ).toBe(JTS_PROFILES.LITE);
       // JTS-L should not have tkn_id
       expect(decoded.payload.tkn_id).toBeUndefined();
     });
@@ -61,7 +61,7 @@ describe('BearerPass Creation', () => {
         aid: 'aid_test123',
         kid: keyPair.kid,
         privateKey: keyPair.privateKey!,
-        profile: 'JTS-S/v1',
+        profile: JTS_PROFILES.STANDARD,
       });
 
       const decoded = decodeBearerPass(token);
@@ -166,7 +166,7 @@ describe('BearerPass Creation', () => {
       expect(decoded.header.alg).toBe('RS256');
     });
 
-    it('should default to JTS-S/v1 profile', () => {
+    it('should default to JTS-S profile', () => {
       const token = createBearerPass({
         prn: 'user123',
         aid: 'aid_test123',
@@ -175,7 +175,7 @@ describe('BearerPass Creation', () => {
       });
 
       const decoded = decodeBearerPass(token);
-      expect(decoded.header.typ).toBe('JTS-S/v1');
+      expect(decoded.header.typ).toBe(JTS_PROFILES.STANDARD);
     });
 
     it('should work with EC key', () => {
@@ -231,12 +231,12 @@ describe('BearerPass Decoding', () => {
         kid: keyPair.kid,
         privateKey: keyPair.privateKey!,
         algorithm: 'RS256',
-        profile: 'JTS-S/v1',
+        profile: JTS_PROFILES.STANDARD,
       });
 
       const decoded = decodeBearerPass(token);
       expect(decoded.header.alg).toBe('RS256');
-      expect(decoded.header.typ).toBe('JTS-S/v1');
+      expect(decoded.header.typ).toBe(JTS_PROFILES.STANDARD);
       expect(decoded.header.kid).toBe('decode-key');
     });
 
@@ -501,20 +501,20 @@ describe('BearerPass Verification', () => {
         aid: 'aid_test',
         kid: keyPair.kid,
         privateKey: keyPair.privateKey!,
-        profile: 'JTS-S/v1',
+        profile: JTS_PROFILES.STANDARD,
       });
 
       const validResult = verifyBearerPass({
         token,
         publicKeys: keyMap,
-        acceptedProfiles: ['JTS-S/v1', 'JTS-C/v1'],
+        acceptedProfiles: [JTS_PROFILES.STANDARD, JTS_PROFILES.CONFIDENTIAL],
       });
       expect(validResult.valid).toBe(true);
 
       const invalidResult = verifyBearerPass({
         token,
         publicKeys: keyMap,
-        acceptedProfiles: ['JTS-L/v1'],
+        acceptedProfiles: [JTS_PROFILES.LITE],
       });
       expect(invalidResult.valid).toBe(false);
       expect(invalidResult.error?.errorCode).toBe('JTS-400-01');
@@ -527,7 +527,7 @@ describe('BearerPass Verification', () => {
         aid: 'aid_test',
         kid: keyPair.kid,
         privateKey: keyPair.privateKey!,
-        profile: 'JTS-S/v1',
+        profile: JTS_PROFILES.STANDARD,
       });
 
       const result = verifyBearerPass({

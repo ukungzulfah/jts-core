@@ -14,7 +14,7 @@ import { JTSResourceServer } from '../../src/server/resource-server';
 import { JTSAuthServer } from '../../src/server/auth-server';
 import { createBearerPass } from '../../src/tokens/bearer-pass';
 import { generateKeyPair } from '../../src/crypto';
-import { JTSKeyPair } from '../../src/types';
+import { JTSKeyPair, JTS_PROFILES } from '../../src/types';
 
 // Mock Express request/response
 function createMockRequest(options: {
@@ -402,7 +402,7 @@ describe('Express Middleware', () => {
 
     beforeEach(async () => {
       authServer = new JTSAuthServer({
-        profile: 'JTS-S/v1',
+        profile: JTS_PROFILES.STANDARD,
         signingKey,
         bearerPassLifetime: 300,
         stateProofLifetime: 3600,
