@@ -26,7 +26,7 @@ The complete JTS specification is available in multiple languages:
 
 > **New to JTS?** Start with the specification in your preferred language to understand the architecture and security model.
 
-## 🚀 Live Demo
+## 🚀 Project Demo
 
 See JTS in action with a complete production-ready example:
 
