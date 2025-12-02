@@ -9,6 +9,28 @@
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 
+> 📖 **Read the Specification** | 🚀 **Try the Demo** | 📚 **View Examples**
+
+## 📖 Technical Specification
+
+The complete JTS specification is available in multiple languages:
+
+- **[English](./JTS_Specification_v1-en.md)** - `JTS_Specification_v1-en.md`
+- Additional language versions coming soon
+
+> **New to JTS?** Start with the specification above to understand the architecture and security model.
+
+## 🚀 Live Demo
+
+See JTS in action with a complete production-ready example:
+
+- **[JTS-C Demo with MySQL](https://github.com/ukungzulfah/demo-jts-c-mysql)** - Full-stack implementation with authentication, session management, and encrypted tokens
+  - Complete Express.js server setup
+  - MySQL integration with TypeScript
+  - Device fingerprinting and multi-device sessions
+  - Rate limiting and security best practices
+  - [View Test Report](https://github.com/ukungzulfah/demo-jts-c-mysql/blob/main/TEST_REPORT.md)
+
 ## 🌟 Features
 
 - **Three Security Profiles**: JTS-L (Lite), JTS-S (Standard), JTS-C (Confidentiality)
