@@ -38,14 +38,14 @@ npm install -g @engjts/auth
 ### 1. Setup Auth Server
 
 ```typescript
-import {JTSAuthServer, generateKeyPair} from '@engjts/auth';
+import {JTSAuthServer, generateKeyPair, JTSAlgorithm, JTS_PROFILES} from '@engjts/auth';
 
 // Generate signing key
-const signingKey = await generateKeyPair('my-key-2025', 'RS256');
+const signingKey = await generateKeyPair('my-key-2025', JTSAlgorithm.RS256);
 
 // Create auth server
 const authServer = new JTSAuthServer({
-  profile: 'JTS-S/v1',
+  profile: JTS_PROFILES.STANDARD,
   signingKey,
   bearerPassLifetime: 300, // 5 minutes
   stateProofLifetime: 604800, // 7 days
@@ -64,11 +64,14 @@ console.log(tokens.stateProof); // Store in HttpOnly cookie
 ### 2. Setup Resource Server
 
 ```typescript
-import {JTSResourceServer} from '@engjts/auth';
+import {JTSResourceServer, JTS_PROFILES} from '@engjts/auth';
 
 const resourceServer = new JTSResourceServer({
   publicKeys: [signingKey],
   audience: 'https://api.example.com',
+  acceptedProfiles: [JTS_PROFILES.STANDARD, JTS_PROFILES.LITE],
+  gracePeriodTolerance: 30, // seconds
+  jwksCacheTTL: 3600, // 1 hour
 });
 
 // Verify token
@@ -83,16 +86,32 @@ if (result.valid) {
 
 ```typescript
 import express from 'express';
-import {jtsAuth, jtsRequirePermissions, createJTSRoutes} from '@engjts/auth';
+import {jtsAuth, jtsRequirePermissions, createJTSRoutes, JTSAuthServer, JTSResourceServer, generateKeyPair, JTSAlgorithm, JTS_PROFILES} from '@engjts/auth';
 
 const app = express();
+app.use(express.json());
+
+// Setup servers
+const signingKey = await generateKeyPair('my-key-2025', JTSAlgorithm.ES256);
+
+const authServer = new JTSAuthServer({
+  profile: JTS_PROFILES.STANDARD,
+  signingKey,
+  bearerPassLifetime: 300,
+  stateProofLifetime: 604800,
+});
+
+const resourceServer = new JTSResourceServer({
+  publicKeys: [signingKey],
+  acceptedProfiles: [JTS_PROFILES.STANDARD],
+});
 
 // Create routes
 const routes = createJTSRoutes({
   authServer,
   validateCredentials: async (req) => {
     const {email, password} = req.body;
-// Validate credentials...
+    // Validate credentials against your database...
     return {prn: email, permissions: ['read:profile']};
   },
 });
@@ -101,12 +120,14 @@ const routes = createJTSRoutes({
 app.post('/jts/login', routes.loginHandler);
 app.post('/jts/renew', routes.renewHandler);
 app.post('/jts/logout', routes.logoutHandler);
+app.get('/.well-known/jts-jwks', routes.jwksHandler);
+app.get('/.well-known/jts-configuration', routes.configHandler);
 
 // Protected routes
 app.get('/api/profile',
   jtsAuth({resourceServer}),
   (req, res) => {
-    res.json({user: req.jts.payload.prn});
+    res.json({user: req.jts?.payload.prn});
   }
 );
 
@@ -143,11 +164,11 @@ npx @engjts/auth jts --help
 
 ```bash
 
-# Generate ES256 key pair (recommended)
+# Generate ES256 key pair (recommended for performance)
 
 jts keygen -a ES256 -o signing-key.pem
 
-# Generate RS256 key with 4096 bits
+# Generate RS256 key with 4096-bit modulus
 
 jts keygen -a RS256 --bits 4096 -o rsa-key.pem
 
@@ -247,21 +268,21 @@ Options:
 
 # Initialize with JTS-S profile (recommended for production)
 
-jts init --profile JTS-S --algorithm ES256 --output ./config
+jts init --profile JTS-S/v1 --algorithm ES256 --output ./config
 
-# Initialize JTS-C profile (with encryption)
+# Initialize JTS-C profile (with encryption for confidential data)
 
-jts init --profile JTS-C --algorithm RS256 --output ./config
+jts init --profile JTS-C/v1 --algorithm RS256 --output ./config
 
 # Force overwrite existing
 
-jts init --profile JTS-S -o ./config --force
+jts init --profile JTS-S/v1 -o ./config --force
 ```
 
 Options:
 
-- `--profile <profile>` - JTS profile: JTS-L, JTS-S, or JTS-C
-- `-a, --algorithm <alg>` - Signing algorithm
+- `--profile <profile>` - JTS profile: JTS-L/v1, JTS-S/v1, or JTS-C/v1
+- `-a, --algorithm <alg>` - Signing algorithm (RS256, ES256, etc.)
 - `-o, --output <dir>` - Output directory
 - `-f, --force` - Overwrite existing directory
 
@@ -290,51 +311,72 @@ Generated files:
 ### In-Memory (Development)
 
 ```typescript
-import {InMemorySessionStore} from '@engjts/auth';
+import {InMemorySessionStore, JTSAuthServer, generateKeyPair, JTSAlgorithm, JTS_PROFILES} from '@engjts/auth';
 
-const store = new InMemorySessionStore();
+const store = new InMemorySessionStore({
+  rotationGraceWindow: 10, // seconds
+  defaultSessionLifetime: 604800, // 7 days
+});
+
+const signingKey = await generateKeyPair('my-key-2025', JTSAlgorithm.ES256);
+
 const authServer = new JTSAuthServer({
+  profile: JTS_PROFILES.STANDARD,
+  signingKey,
   sessionStore: store,
-// ...other options
+  // ...other options
 });
 ```
 
 ### Redis (Production)
 
 ```typescript
-import {RedisSessionStore} from '@engjts/auth';
+import {RedisSessionStore, JTSAuthServer, generateKeyPair, JTSAlgorithm, JTS_PROFILES} from '@engjts/auth';
 import Redis from 'ioredis';
 
 const redis = new Redis();
 const store = new RedisSessionStore({
   client: redis,
-  keyPrefix: 'jts:',
+  keyPrefix: 'jts:session:',
+  rotationGraceWindow: 30, // seconds
+  defaultSessionLifetime: 604800, // 7 days
 });
 
+const signingKey = await generateKeyPair('my-key-2025', JTSAlgorithm.ES256);
+
 const authServer = new JTSAuthServer({
+  profile: JTS_PROFILES.STANDARD,
+  signingKey,
   sessionStore: store,
-// ...other options
+  // ...other options
 });
 ```
 
 ### PostgreSQL (Production)
 
 ```typescript
-import {PostgresSessionStore} from '@engjts/auth';
+import {PostgresSessionStore, JTSAuthServer, generateKeyPair, JTSAlgorithm, JTS_PROFILES} from '@engjts/auth';
 import {Pool} from 'pg';
 
 const pool = new Pool({connectionString: process.env.DATABASE_URL});
 const store = new PostgresSessionStore({
   pool,
   tableName: 'jts_sessions',
+  schema: 'public',
+  rotationGraceWindow: 30, // seconds
+  defaultSessionLifetime: 604800, // 7 days
 });
 
 // Initialize table (run once)
 await store.initialize();
 
+const signingKey = await generateKeyPair('my-key-2025', JTSAlgorithm.ES256);
+
 const authServer = new JTSAuthServer({
+  profile: JTS_PROFILES.STANDARD,
+  signingKey,
   sessionStore: store,
-// ...other options
+  // ...other options
 });
 ```
 
@@ -343,23 +385,25 @@ const authServer = new JTSAuthServer({
 ### Key Generation
 
 ```typescript
-import {generateKeyPair, generateRSAKeyPair, generateECKeyPair} from '@engjts/auth';
+import {generateKeyPair, generateRSAKeyPair, generateECKeyPair, JTSAlgorithm} from '@engjts/auth';
 
 // Auto-select based on algorithm
-const key = await generateKeyPair('key-id', 'RS256');
+const key = await generateKeyPair('key-id', JTSAlgorithm.RS256);
 
-// RSA specific
-const rsaKey = await generateRSAKeyPair('rsa-key', 'RS256', 2048);
+// RSA specific (with custom modulus length)
+const rsaKey = await generateRSAKeyPair('rsa-key', JTSAlgorithm.RS256, 4096);
 
 // EC specific (recommended for performance)
-const ecKey = await generateECKeyPair('ec-key', 'ES256');
+const ecKey = await generateECKeyPair('ec-key', JTSAlgorithm.ES256);
 ```
 
 ### Key Rotation
 
 ```typescript
+import {generateKeyPair, JTSAlgorithm} from '@engjts/auth';
+
 // Generate new key
-const newKey = await generateKeyPair('key-2025-002', 'RS256');
+const newKey = await generateKeyPair('key-2025-002', JTSAlgorithm.ES256);
 
 // Rotate (old key becomes "previous", new key becomes "current")
 authServer.rotateSigningKey(newKey);
@@ -420,7 +464,11 @@ const tokens = await authServer.login({
 Handle in-flight requests during token expiry:
 
 ```typescript
+import {JTSResourceServer, JTS_PROFILES} from '@engjts/auth';
+
 const resourceServer = new JTSResourceServer({
+  publicKeys: [signingKey],
+  acceptedProfiles: [JTS_PROFILES.STANDARD],
   gracePeriodTolerance: 30, // Accept tokens up to 30s after expiry
 });
 ```
@@ -428,37 +476,57 @@ const resourceServer = new JTSResourceServer({
 ## 📱 Client SDK
 
 ```typescript
-import {JTSClient} from '@engjts/auth';
+import {JTSClient, InMemoryTokenStorage} from '@engjts/auth';
 
 const client = new JTSClient({
   authServerUrl: 'https://auth.example.com',
+  tokenEndpoint: '/jts/login',
+  renewalEndpoint: '/jts/renew',
+  logoutEndpoint: '/jts/logout',
   autoRenewBefore: 60, // Renew 1 minute before expiry
+  storage: new InMemoryTokenStorage(), // or custom TokenStorage implementation
 });
 
-// Login
-const result = await client.login({
-  email: 'user@example.com',
-  password: 'password123',
-});
-
-// Auto-refreshing fetch
-const response = await client.fetch('https://api.example.com/profile');
-
-// Event handlers
+// Event handlers (set before login)
 client.onRefresh((token) => console.log('Token refreshed'));
 client.onExpired(() => console.log('Session expired'));
 
-// Logout
+// Login
+const result = await client.login({
+  username: 'user@example.com',
+  password: 'password123',
+});
+
+if (result.success) {
+  console.log('Logged in as:', result.payload?.prn);
+  console.log('Token expires at:', result.expiresAt);
+}
+
+// Auto-refreshing fetch with Authorization header
+const response = await client.fetch('https://api.example.com/profile');
+
+// Check authentication status
+const isAuth = await client.isAuthenticated();
+const timeLeft = await client.getTimeUntilExpiry();
+
+// Get current token payload
+const payload = await client.getPayload();
+
+// Logout and cleanup
 await client.logout();
+client.destroy(); // cleanup timers
 ```
 
 ## 🔴 Error Handling
 
 ```typescript
-import {JTSError} from '@engjts/auth';
+import {JTSError, JTS_ERRORS} from '@engjts/auth';
 
 try {
   const result = await resourceServer.verify(token);
+  if (!result.valid && result.error) {
+    throw result.error;
+  }
 } catch (error) {
   if (error instanceof JTSError) {
     console.log(error.errorCode); // 'JTS-401-01'
@@ -468,7 +536,6 @@ try {
 
     // Send standard error response
     res.status(error.httpStatus).json(error.toJSON());
-
   }
 }
 ```
@@ -496,9 +563,9 @@ try {
 
 #### Crypto
 
-- `generateKeyPair(kid, algorithm)` - Generate signing key pair
-- `generateRSAKeyPair(kid, algorithm, modulusLength)` - Generate RSA key pair
-- `generateECKeyPair(kid, algorithm)` - Generate EC key pair
+- `generateKeyPair(kid, algorithm: JTSAlgorithm)` - Generate signing key pair
+- `generateRSAKeyPair(kid, algorithm: JTSAlgorithm, modulusLength?)` - Generate RSA key pair
+- `generateECKeyPair(kid, algorithm: JTSAlgorithm)` - Generate EC key pair
 - `sign(data, privateKey, algorithm)` - Sign data
 - `verify(data, signature, publicKey, algorithm)` - Verify signature
 - `pemToJwk(pem, kid, algorithm)` - Convert PEM to JWK
@@ -515,12 +582,12 @@ try {
 - `hasAllPermissions(payload, permissions)` - Check all permissions
 - `hasAnyPermission(payload, permissions)` - Check any permission
 
-#### JWE (JTS-C)
+#### JWE (JTS-C Profile)
 
 - `createEncryptedBearerPass(options)` - Create encrypted JWE token
 - `decryptJWE(jwe, options)` - Decrypt JWE token
 - `verifyEncryptedBearerPass(jwe, options)` - Decrypt and verify
-- `isEncryptedToken(token)` - Check if token is JWE
+- `isEncryptedToken(token)` - Check if token is JWE format
 
 #### Server
 
@@ -529,22 +596,33 @@ try {
 
 #### Client
 
-- `JTSClient` - Client SDK class
-- `InMemoryTokenStorage` - Simple token storage
+- `JTSClient` - Client SDK class for browser/Node.js
+- `InMemoryTokenStorage` - Simple in-memory token storage
+- `TokenStorage` - Interface for custom token storage implementations
 
 #### Middleware
 
-- `jtsAuth(options)` - Authentication middleware
-- `jtsOptionalAuth(options)` - Optional auth middleware
-- `jtsRequirePermissions(options)` - Permission middleware
-- `createJTSRoutes(options)` - Create route handlers
-- `mountJTSRoutes(app, options)` - Mount routes on Express app
+- `jtsAuth(options)` - Required authentication middleware
+- `jtsOptionalAuth(options)` - Optional auth middleware (allows anonymous)
+- `jtsRequirePermissions(options)` - Permission check middleware
+- `createJTSRoutes(options)` - Create route handlers for auth endpoints
+- `mountJTSRoutes(app, options)` - Mount all routes on Express app
 
 #### Stores
 
-- `InMemorySessionStore` - In-memory session store
-- `RedisSessionStore` - Redis-backed session store
-- `PostgresSessionStore` - PostgreSQL-backed session store
+- `InMemorySessionStore` - In-memory session store (for development/testing)
+- `RedisSessionStore` - Redis-backed session store (for production)
+- `PostgresSessionStore` - PostgreSQL-backed session store (for production)
+- `BaseSessionStore` - Abstract base class for custom session stores
+
+#### Types & Constants
+
+- `JTSAlgorithm` - Enum for supported signing algorithms (RS256, ES256, etc.)
+- `JTS_PROFILES` - Constants for JTS profiles (LITE, STANDARD, CONFIDENTIAL)
+- `JTS_ERRORS` - Constants for JTS error codes
+- `JTS_ERROR_MESSAGES` - Constants for error messages
+- `SessionPolicy` - Enum for session policies (ALLOW_ALL, SINGLE, NOTIFY)
+- `JTSError` - Error class with standardized error handling
 
 ### JTS Claims
 
@@ -618,7 +696,14 @@ MIT License - see [LICENSE](./LICENSE) file for details.
 
 ## 🔗 Links
 
+### Core
 - [npm Package](https://www.npmjs.com/package/@engjts/auth)
 - [GitHub Repository](https://github.com/ukungzulfah/jts-core.git)
 - [Issue Tracker](https://github.com/ukungzulfah/jts-core/issues)
 - [Changelog](./CHANGELOG.md)
+
+### Related Projects
+- [@engjts/mysql-adapter](https://github.com/ukungzulfah/engjts-mysql-adapter) - MySQL session store adapter for JTS
+- [JTS-C Demo with MySQL](https://github.com/ukungzulfah/demo-jts-c-mysql) - Complete JTS-C implementation example with MySQL
+- [Test Report (JTS-C)](https://github.com/ukungzulfah/demo-jts-c-mysql/blob/main/TEST_REPORT.md) - Comprehensive test coverage report
+- [JTS Express Server Example](https://github.com/ukungzulfah/jts-express-example) - Production-ready Express.js integration example
