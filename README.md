@@ -9,8 +9,6 @@
 [![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen.svg)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-blue.svg)](https://www.typescriptlang.org/)
 
-> 📖 **Read the Specification** | 🚀 **Try the Demo** | 📚 **View Examples**
-
 ## 📖 Technical Specification
 
 The complete JTS specification is available in multiple languages:
