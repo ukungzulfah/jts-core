@@ -16,9 +16,15 @@
 The complete JTS specification is available in multiple languages:
 
 - **[English](./JTS_Specification_v1-en.md)** - `JTS_Specification_v1-en.md`
-- Additional language versions coming soon
+- **[Spanish](./JTS_Specification_v1-es.md)** - `JTS_Specification_v1-es.md`
+- **[Indonesian](./JTS_Specification_v1-id.md)** - `JTS_Specification_v1-id.md`
+- **[Japanese](./JTS_Specification_v1-ja.md)** - `JTS_Specification_v1-ja.md`
+- **[Korean](./JTS_Specification_v1-ko.md)** - `JTS_Specification_v1-ko.md`
+- **[Portuguese (Brazil)](./JTS_Specification_v1-pt-BR.md)** - `JTS_Specification_v1-pt-BR.md`
+- **[Russian](./JTS_Specification_v1-ru.md)** - `JTS_Specification_v1-ru.md`
+- **[Chinese (Simplified)](./JTS_Specification_v1-zh-CN.md)** - `JTS_Specification_v1-zh-CN.md`
 
-> **New to JTS?** Start with the specification above to understand the architecture and security model.
+> **New to JTS?** Start with the specification in your preferred language to understand the architecture and security model.
 
 ## 🚀 Live Demo
 
