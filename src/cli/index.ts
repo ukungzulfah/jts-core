@@ -34,8 +34,8 @@ import {
   JTS_SPEC_VERSION,
 } from '../index';
 
-import type { JTSAlgorithm, JTSKeyPair, JTSHeader, JTSPayload, JWKS, JWKSKey, JTSProfile } from '../types';
-import { JTS_PROFILES } from '../types';
+import type { JTSKeyPair, JTSHeader, JTSPayload, JWKS, JWKSKey, JTSProfile } from '../types';
+import { JTS_PROFILES, JTSAlgorithm } from '../types';
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -583,16 +583,16 @@ async function jwksCommand(keyFiles: string[], options: { output?: string; kid?:
         const kid = options.kid || path.basename(file, path.extname(file));
         
         // Try to detect algorithm from key
-        let algorithm: JTSAlgorithm = 'RS256';
+        let algorithm: JTSAlgorithm = JTSAlgorithm.RS256;
         if (content.includes('EC ')) {
           // Detect curve from key
           const crypto = await import('crypto');
           const key = crypto.createPublicKey(content);
           const exported = key.export({ format: 'jwk' });
           
-          if (exported.crv === 'P-256') algorithm = 'ES256';
-          else if (exported.crv === 'P-384') algorithm = 'ES384';
-          else if (exported.crv === 'P-521') algorithm = 'ES512';
+          if (exported.crv === 'P-256') algorithm = JTSAlgorithm.ES256;
+          else if (exported.crv === 'P-384') algorithm = JTSAlgorithm.ES384;
+          else if (exported.crv === 'P-521') algorithm = JTSAlgorithm.ES512;
         }
         
         const jwk = pemToJwk(content, kid, algorithm);
@@ -687,7 +687,7 @@ async function initCommand(options: {
     let encryptionKey: JTSKeyPair | undefined;
     if (profile === JTS_PROFILES.CONFIDENTIAL) {
       print.info('Generating encryption key...');
-      encryptionKey = await generateRSAKeyPair(`${profile.toLowerCase()}-encryption-${Date.now()}`, 'RS256', 2048);
+      encryptionKey = await generateRSAKeyPair(`${profile.toLowerCase()}-encryption-${Date.now()}`, JTSAlgorithm.RS256, 2048);
       
       fs.writeFileSync(
         path.join(output, 'encryption-key.pem'),

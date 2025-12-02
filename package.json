@@ -1,6 +1,6 @@
 {
   "name": "@engjts/auth",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Janus Token System (JTS) - A two-component authentication architecture for secure, revocable, and confidential API authentication",
   "type": "module",
   "main": "./dist/index.cjs",

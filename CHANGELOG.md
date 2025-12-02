@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-12-02
+
+### Refactored
+- **Complete Codebase Restructuring**: Major refactoring for improved maintainability and code organization.
+- **Crypto Module**: Extracted `AlgorithmConfig` into separate module for better separation of concerns.
+- **Client Module**: Split into dedicated files (`InMemoryTokenStorage.ts`, `types.ts`) for cleaner architecture.
+- **Middleware Module**: Extracted constants into `constants.ts` for centralized error code management.
+
+### Improved
+- **Code Organization**: Better file structure with single-responsibility modules.
+- **Type Safety**: Enhanced TypeScript definitions with dedicated type files.
+- **Error Handling**: Centralized JTS error codes and messages in constants.
+- **Test Coverage**: All 256 tests passing with comprehensive coverage.
+
+### Technical
+- Modular architecture enabling easier maintenance and extension.
+- Cleaner imports and exports across the codebase.
+- Improved developer experience with better code discoverability.
+
 ## [1.1.0] - 2025-12-01
 
 ### Added
