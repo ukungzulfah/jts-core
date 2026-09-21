@@ -181,7 +181,18 @@ export function createBearerPass(options: CreateBearerPassOptions): string {
     customClaims = {},
   } = options;
   const now = Math.floor(Date.now() / 1000);
-  const exp = now + expiresIn;
+  // Coerce to a finite number. A string value (e.g. "300" read from an env var
+  // or passed through an untyped JS caller) would otherwise make `now + expiresIn`
+  // perform string concatenation, producing a wildly wrong `exp` claim
+  // (e.g. 1786690217300 instead of 1786690517).
+  const lifetimeSeconds = Number(expiresIn);
+  if (!Number.isFinite(lifetimeSeconds) || lifetimeSeconds < 0) {
+    throw new JTSError(
+      JTS_ERRORS.MALFORMED_TOKEN,
+      'Invalid expiresIn: must be a non-negative finite number of seconds',
+    );
+  }
+  const exp = now + lifetimeSeconds;
 
   // Build header
   const header: JTSHeader = {

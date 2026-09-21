@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-02-09
+
+### Fixed
+- **Incorrect `exp` claim when `expiresIn` is a string (CWE-613 / VAPT-MEDIUM)**:
+  `createBearerPass` now coerces `expiresIn` to a finite, non-negative number before
+  computing `exp = iat + expiresIn`. Previously a string value (e.g. `"300"` read from an
+  environment variable or passed by an untyped JS caller) caused string concatenation,
+  producing an `exp` claim far in the future (e.g. `1786690217300` instead of `1786690517`),
+  which effectively issued non-expiring tokens. Non-numeric values are now rejected.
+- **String lifetimes in `JTSAuthServer` config**: `bearerPassLifetime`, `stateProofLifetime`,
+  `gracePeriod`, and `rotationGraceWindow` are coerced to finite numbers on construction,
+  fixing the same concatenation issue for the `expiresAt` field returned by `login()`/`renew()`
+  when config values arrive as strings.
+
+### Tests
+- Added regression tests covering string `expiresIn` (verifies numeric `exp`) and
+  rejection of non-numeric `expiresIn`. Suite: 256 → 258 tests, all passing.
+
 ## [1.2.0] - 2025-12-02
 
 ### Refactored

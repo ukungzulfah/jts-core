@@ -62,6 +62,35 @@ import {
   keyPairToJwks,
 } from '../crypto';
 
+/**
+ * Coerces a possibly-string configuration value into a finite, non-negative
+ * number of seconds, falling back to `defaultValue` when the input is
+ * `undefined`/`null` or not a valid finite number.
+ *
+ * This guards against a subtle bug class: configuration read from environment
+ * variables or JSON arrives as strings (e.g. `"300"`), and using such a value
+ * in `Date.now() + value` performs string concatenation instead of addition,
+ * silently producing an incorrect expiration timestamp.
+ */
+function coerceSeconds(
+  value: unknown,
+  defaultValue: number,
+  fieldName: string,
+): number {
+  if (value === undefined || value === null) {
+    return defaultValue;
+  }
+  const num = typeof value === 'number' ? value : Number(value);
+  if (!Number.isFinite(num) || num < 0) {
+    throw new Error(
+      `Invalid ${fieldName}: expected a non-negative finite number of seconds, received ${JSON.stringify(
+        value,
+      )}`,
+    );
+  }
+  return num;
+}
+
 /* ============================================================================
  * TYPE DEFINITIONS & INTERFACES
  * ============================================================================ */
@@ -356,10 +385,25 @@ export class JTSAuthServer {
       signingKey: options.signingKey,
       previousKeys: options.previousKeys ?? [],
       encryptionKey: options.encryptionKey,
-      bearerPassLifetime: options.bearerPassLifetime ?? 300,
-      stateProofLifetime: options.stateProofLifetime ?? 7 * 24 * 60 * 60,
-      gracePeriod: options.gracePeriod ?? 30,
-      rotationGraceWindow: options.rotationGraceWindow ?? 10,
+      // Numeric lifetimes are coerced defensively: untyped JS callers (or config
+      // values read from env vars / JSON) may arrive as strings, which would turn
+      // `Date.now() + lifetime` into string concatenation and corrupt exp/expiresAt.
+      bearerPassLifetime: coerceSeconds(
+        options.bearerPassLifetime,
+        300,
+        'bearerPassLifetime',
+      ),
+      stateProofLifetime: coerceSeconds(
+        options.stateProofLifetime,
+        7 * 24 * 60 * 60,
+        'stateProofLifetime',
+      ),
+      gracePeriod: coerceSeconds(options.gracePeriod, 30, 'gracePeriod'),
+      rotationGraceWindow: coerceSeconds(
+        options.rotationGraceWindow,
+        10,
+        'rotationGraceWindow',
+      ),
       sessionPolicy: options.sessionPolicy ?? SessionPolicy.ALLOW_ALL,
       audience: options.audience,
       issuer: options.issuer,

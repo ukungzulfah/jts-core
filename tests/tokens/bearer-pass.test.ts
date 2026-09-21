@@ -88,6 +88,42 @@ describe('BearerPass Creation', () => {
       expect(decoded.payload.exp).toBeLessThanOrEqual(after + expiresIn);
     });
 
+    it('should compute exp correctly when expiresIn is passed as a string (regression: string concatenation)', () => {
+      // Untyped JS callers / config values read from env vars may pass a string.
+      // Previously `now + "300"` produced a string-concatenated exp far in the future.
+      const before = Math.floor(Date.now() / 1000);
+
+      const token = createBearerPass({
+        prn: 'user123',
+        aid: 'aid_test123',
+        kid: keyPair.kid,
+        privateKey: keyPair.privateKey!,
+        // Deliberately pass a string, bypassing TypeScript's number type.
+        expiresIn: '300' as unknown as number,
+      });
+
+      const after = Math.floor(Date.now() / 1000);
+      const decoded = decodeBearerPass(token);
+
+      expect(typeof decoded.payload.exp).toBe('number');
+      expect(decoded.payload.exp).toBeGreaterThanOrEqual(before + 300);
+      expect(decoded.payload.exp).toBeLessThanOrEqual(after + 300);
+      // Guard against the specific string-concatenation failure mode.
+      expect(decoded.payload.exp).toBeLessThan(1_000_000_000_000);
+    });
+
+    it('should reject a non-numeric expiresIn', () => {
+      expect(() =>
+        createBearerPass({
+          prn: 'user123',
+          aid: 'aid_test123',
+          kid: keyPair.kid,
+          privateKey: keyPair.privateKey!,
+          expiresIn: 'not-a-number' as unknown as number,
+        }),
+      ).toThrow();
+    });
+
     it('should include audience claim', () => {
       const token = createBearerPass({
         prn: 'user123',
